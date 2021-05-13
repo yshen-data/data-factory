@@ -1,0 +1,42 @@
+{
+	"name": "dataflow1",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "warehousestockitems",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				},
+				{
+					"dataset": {
+						"referenceName": "AzureSqlTable1",
+						"type": "DatasetReference"
+					},
+					"name": "source2"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "targetodsstockitems",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Filter1"
+				},
+				{
+					"name": "Join1"
+				}
+			],
+			"script": "parameters{\n\tdynamic_filter as string\n}\nsource(output(\n\t\tStockItemID as integer,\n\t\tStockItemName as string,\n\t\tSupplierID as integer,\n\t\tColorID as integer,\n\t\tUnitPackageID as integer,\n\t\tOuterPackageID as integer,\n\t\tBrand as string,\n\t\tSize as string,\n\t\tLeadTimeDays as integer,\n\t\tQuantityPerOuter as integer,\n\t\tIsChillerStock as boolean,\n\t\tBarcode as string,\n\t\tTaxRate as decimal(18,3),\n\t\tUnitPrice as decimal(18,2),\n\t\tRecommendedRetailPrice as decimal(18,2),\n\t\tTypicalWeightPerUnit as decimal(18,3),\n\t\tMarketingComments as string,\n\t\tInternalComments as string,\n\t\tPhoto as binary,\n\t\tCustomFields as string,\n\t\tTags as string,\n\t\tSearchDetails as string,\n\t\tLastEditedBy as integer,\n\t\tValidFrom as timestamp,\n\t\tValidTo as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> source1\nsource(output(\n\t\tColorID as integer,\n\t\tColorName as string,\n\t\tLastEditedBy as integer,\n\t\tValidFrom as timestamp,\n\t\tValidTo as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> source2\nsource1 filter(toDate(ValidFrom) > toDate($dynamic_filter)) ~> Filter1\nFilter1, source2 join(source1@ColorID == source2@ColorID,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> Join1\nJoin1 sink(input(\n\t\t{Stock Item Staging Key} as integer,\n\t\t{WWI Stock Item ID} as integer,\n\t\t{Stock Item} as string,\n\t\tColor as string,\n\t\t{Selling Package} as string,\n\t\t{Buying Package} as string,\n\t\tBrand as string,\n\t\tSize as string,\n\t\t{Lead Time Days} as integer,\n\t\t{Quantity Per Outer} as integer,\n\t\t{Is Chiller Stock} as boolean,\n\t\tBarcode as string,\n\t\t{Tax Rate} as decimal(18,3),\n\t\t{Unit Price} as decimal(18,2),\n\t\t{Recommended Retail Price} as decimal(18,2),\n\t\t{Typical Weight Per Unit} as decimal(18,3),\n\t\tPhoto as binary,\n\t\t{Valid From} as timestamp,\n\t\t{Valid To} as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tmapColumn(\n\t\t{WWI Stock Item ID} = StockItemID,\n\t\t{Stock Item} = StockItemName,\n\t\tColor = ColorName,\n\t\tBrand,\n\t\tSize,\n\t\t{Lead Time Days} = LeadTimeDays,\n\t\t{Quantity Per Outer} = QuantityPerOuter,\n\t\t{Is Chiller Stock} = IsChillerStock,\n\t\tBarcode,\n\t\t{Tax Rate} = TaxRate,\n\t\t{Unit Price} = UnitPrice,\n\t\t{Recommended Retail Price} = RecommendedRetailPrice,\n\t\t{Typical Weight Per Unit} = TypicalWeightPerUnit,\n\t\tPhoto,\n\t\t{Valid From} = source1@ValidFrom,\n\t\t{Valid To} = source1@ValidTo\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sink1"
+		}
+	}
+}

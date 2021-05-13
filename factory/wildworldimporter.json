@@ -1,0 +1,9 @@
+{
+	"name": "wildworldimporter",
+	"location": "eastus2",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "c11267f6-d004-4012-95a6-2b00bfeb4215",
+		"tenantId": "9fa4f438-b1e6-473b-803f-86f8aedf0dec"
+	}
+}
